@@ -1597,6 +1597,7 @@ class QuantAwareTrainRangeLinearQuantizer(Quantizer):
 
         self.activation_replace_fn = activation_replace_fn
         self.replacement_factory[nn.ReLU] = self.activation_replace_fn
+        self.replacement_factory[nn.Identity] = self.activation_replace_fn
 
     def _post_prepare_model(self):
         if self.quantize_inputs:

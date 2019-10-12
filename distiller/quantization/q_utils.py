@@ -27,6 +27,21 @@ def _prep_saturation_val_tensor(sat_val):
         out = out.unsqueeze(0)
     return is_scalar, out
 
+import struct
+import numpy as np
+
+def float_to_bin(num):
+    return bin(struct.unpack('!I', struct.pack('!f', num))[0])[2:].zfill(32)
+
+def bin_to_float(binary):
+    return struct.unpack('!f',struct.pack('!I', int(binary, 2)))[0]
+
+def get_fp24(x):
+    s = float_to_bin(x)
+    s = np.array(list(s))
+    s[-8:] = '0'
+    s = ''.join(s)
+    return bin_to_float(s)
 
 def symmetric_linear_quantization_params(num_bits, saturation_val):
     is_scalar, sat_val = _prep_saturation_val_tensor(saturation_val)
@@ -41,6 +56,7 @@ def symmetric_linear_quantization_params(num_bits, saturation_val):
     # value to 'n', so the scale becomes 1
     sat_val[sat_val == 0] = n
     scale = n / sat_val
+    # scale = torch.tensor(np.array([get_fp24(float(x)) for x in scale.cpu().numpy()]), dtype=scale.dtype, device=scale.device)
     zero_point = torch.zeros_like(scale)
 
     if is_scalar:
